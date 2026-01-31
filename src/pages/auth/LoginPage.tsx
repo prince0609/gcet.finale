@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!email || !password) {
       setError('Please enter both email and password');
       return;
@@ -31,7 +31,14 @@ export default function LoginPage() {
     try {
       const success = await login(email, password);
       if (success) {
-        navigate('/');
+        // Redirect based on user role
+        if (email.toLowerCase().includes('admin')) {
+          navigate('/admin');
+        } else if (email.toLowerCase().includes('vendor')) {
+          navigate('/vendor');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setError('Invalid email or password');
       }
