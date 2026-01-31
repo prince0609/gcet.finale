@@ -25,6 +25,18 @@ export function Header() {
     }
   };
 
+  const getProfileLink = () => {
+    if (!user) return '/login';
+    switch (user.role) {
+      case 'admin':
+        return '/admin/profile';
+      case 'vendor':
+        return '/vendor/profile';
+      default:
+        return '/dashboard/profile';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -94,7 +106,7 @@ export function Header() {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
-              <Link to={getDashboardLink()}>
+              <Link to={getProfileLink()}>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <User className="h-4 w-4" />
                   <span className="hidden lg:inline">{user?.name?.split(' ')[0]}</span>
@@ -142,8 +154,8 @@ export function Header() {
             <Link
               to="/"
               className={`px-3 py-2 rounded-md transition-colors ${location.pathname === '/'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-secondary'
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'hover:bg-secondary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -152,8 +164,8 @@ export function Header() {
             <Link
               to="/products"
               className={`px-3 py-2 rounded-md transition-colors ${location.pathname === '/products' || location.pathname.startsWith('/products/')
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-secondary'
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'hover:bg-secondary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -162,8 +174,8 @@ export function Header() {
             <Link
               to="/cart"
               className={`px-3 py-2 rounded-md transition-colors flex items-center justify-between ${location.pathname === '/cart'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-secondary'
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'hover:bg-secondary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -179,8 +191,8 @@ export function Header() {
                 <Link
                   to={getDashboardLink()}
                   className={`px-3 py-2 rounded-md transition-colors ${location.pathname.includes('dashboard') || location.pathname.includes('vendor') || location.pathname.includes('admin')
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'hover:bg-secondary'
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'hover:bg-secondary'
                     }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
