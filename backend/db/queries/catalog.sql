@@ -3,7 +3,7 @@
 -- =============================================================
 
 -- name: listPublishedProducts
-SELECT p.id, p.name, p.sku, p.sales_price, p.qty_on_hand, p.description,
+SELECT p.id, p.name, p.sku, p.sales_price, p.qty_on_hand, p.description, p.image_url,
        p.created_at, u.name as vendor_name
 FROM products p
 JOIN users u ON u.id = p.vendor_id
@@ -17,7 +17,7 @@ FROM products
 WHERE is_published = TRUE AND is_rentable = TRUE;
 
 -- name: searchProducts
-SELECT p.id, p.name, p.sku, p.sales_price, p.qty_on_hand, p.description,
+SELECT p.id, p.name, p.sku, p.sales_price, p.qty_on_hand, p.description, p.image_url,
        p.created_at, u.name as vendor_name
 FROM products p
 JOIN users u ON u.id = p.vendor_id
@@ -33,7 +33,7 @@ WHERE is_published = TRUE AND is_rentable = TRUE
   AND (name ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%');
 
 -- name: getPublishedProductById
-SELECT p.id, p.name, p.sku, p.sales_price, p.qty_on_hand, p.description,
+SELECT p.id, p.name, p.sku, p.sales_price, p.qty_on_hand, p.description, p.image_url,
        p.created_at, p.vendor_id, u.name as vendor_name
 FROM products p
 JOIN users u ON u.id = p.vendor_id

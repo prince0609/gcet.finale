@@ -3,13 +3,13 @@
 -- =============================================================
 
 -- name: createProduct
-INSERT INTO products (vendor_id, name, sku, is_rentable, cost_price, sales_price, qty_on_hand, is_published, description)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, vendor_id, name, sku, is_rentable, cost_price, sales_price, qty_on_hand, is_published, description, created_at;
+INSERT INTO products (vendor_id, name, sku, is_rentable, cost_price, sales_price, qty_on_hand, is_published, description, image_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, vendor_id, name, sku, is_rentable, cost_price, sales_price, qty_on_hand, is_published, description, image_url, created_at;
 
 -- name: getProductById
 SELECT p.id, p.vendor_id, p.name, p.sku, p.is_rentable, p.cost_price, p.sales_price, 
-       p.qty_on_hand, p.is_published, p.description, p.created_at, p.updated_at,
+       p.qty_on_hand, p.is_published, p.description, p.image_url, p.created_at, p.updated_at,
        u.name as vendor_name
 FROM products p
 JOIN users u ON u.id = p.vendor_id
@@ -17,7 +17,7 @@ WHERE p.id = $1;
 
 -- name: getProductByIdForVendor
 SELECT p.id, p.vendor_id, p.name, p.sku, p.is_rentable, p.cost_price, p.sales_price, 
-       p.qty_on_hand, p.is_published, p.description, p.created_at, p.updated_at
+       p.qty_on_hand, p.is_published, p.description, p.image_url, p.created_at, p.updated_at
 FROM products p
 WHERE p.id = $1 AND p.vendor_id = $2;
 
@@ -31,9 +31,10 @@ SET name = COALESCE($3, name),
     qty_on_hand = COALESCE($8, qty_on_hand),
     is_published = COALESCE($9, is_published),
     description = COALESCE($10, description),
+    image_url = COALESCE($11, image_url),
     updated_at = NOW()
 WHERE id = $1 AND vendor_id = $2
-RETURNING id, name, sku, is_rentable, cost_price, sales_price, qty_on_hand, is_published, description, updated_at;
+RETURNING id, name, sku, is_rentable, cost_price, sales_price, qty_on_hand, is_published, description, image_url, updated_at;
 
 -- name: deleteProduct
 DELETE FROM products
@@ -42,7 +43,7 @@ RETURNING id;
 
 -- name: listVendorProducts
 SELECT p.id, p.name, p.sku, p.is_rentable, p.cost_price, p.sales_price, 
-       p.qty_on_hand, p.is_published, p.description, p.created_at
+       p.qty_on_hand, p.is_published, p.description, p.image_url, p.created_at
 FROM products p
 WHERE p.vendor_id = $1
 ORDER BY p.created_at DESC

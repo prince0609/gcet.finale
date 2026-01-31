@@ -121,7 +121,7 @@ CREATE TABLE products (
     description     TEXT,
     created_at      TIMESTAMPTZ DEFAULT NOW(),
     updated_at      TIMESTAMPTZ DEFAULT NOW(),
-
+    image_url       TEXT,
     CONSTRAINT chk_qty_on_hand   CHECK (qty_on_hand >= 0),
     CONSTRAINT chk_prices        CHECK (sales_price >= 0 AND cost_price >= 0)
 );

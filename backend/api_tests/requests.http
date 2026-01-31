@@ -1,0 +1,249 @@
+@baseUrl = http://localhost:3000/api
+@contentType = application/json
+
+# ==========================================
+# 1. AUTHENTICATION & SETUP
+# ==========================================
+
+### Vendor Signup
+# @name vendorSignup
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+    "name": "Test Vendor",
+    "email": "vendor_test_001@example.com",
+    "password": "Password123!",
+    "confirmPassword": "Password123!",
+    "role": "vendor",
+    "companyName": "Test Diggers Pvt Ltd",
+    "gstin": "24ABCDE1234F1Z5"
+}
+
+### Vendor Login
+# @name vendorLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "vendor_test_001@example.com",
+    "password": "Password123!"
+}
+
+@vendorToken = {{vendorSignup.response.body.token}}
+@vendorId = {{vendorSignup.response.body.user.id}}
+
+
+### Customer Signup
+# @name customerSignup
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+    "name": "Test Customer",
+    "email": "customer_test_001@example.com",
+    "password": "Password123!",
+    "confirmPassword": "Password123!",
+    "role": "customer"
+}
+
+### Customer Login
+# @name customerLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "customer_test_001@example.com",
+    "password": "Password123!"
+}
+
+@customerToken = {{customerSignup.response.body.token}}
+@customerId = {{customerSignup.response.body.user.id}}
+
+
+# ==========================================
+# 2. PRODUCT MANAGEMENT (Vendor)
+# ==========================================
+
+### Create Product
+# @name createProduct
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{vendorToken}}
+
+{
+    "name": "Heavy Duty Excavator",
+    "sku": "EXC-200-{{$timestamp}}",
+    "costPrice": 5000000,
+    "salesPrice": 5000,
+    "isRentable": true,
+    "qtyOnHand": 5,
+    "isPublished": true,
+    "description": "20-ton excavator for heavy earthmoving."
+}
+
+@productId = {{createProduct.response.body.product.id}}
+
+### Get Product Details
+GET {{baseUrl}}/products/{{productId}}
+Authorization: Bearer {{vendorToken}}
+
+### Add Daily Pricing
+POST {{baseUrl}}/products/{{productId}}/pricing
+Content-Type: {{contentType}}
+Authorization: Bearer {{vendorToken}}
+
+{
+    "periodTypeId": 2,
+    "price": 4500,
+    "isActive": true
+}
+# Note: periodTypeId 2 is typically 'Daily' in seed data
+
+### Create Variant
+# @name createVariant
+POST {{baseUrl}}/products/{{productId}}/variants
+Content-Type: {{contentType}}
+Authorization: Bearer {{vendorToken}}
+
+{
+    "sku": "EXC-200-AC-{{$timestamp}}",
+    "priceOverride": 5500,
+    "qtyOnHand": 2,
+    "isActive": true
+}
+
+@variantId = {{createVariant.response.body.variant.id}}
+
+
+# ==========================================
+# 3. CUSTOMER SHOPPING FLOW
+# ==========================================
+
+### Catalog Search
+GET {{baseUrl}}/catalog/products?search=Excavator
+Content-Type: {{contentType}}
+
+### Check Availability
+GET {{baseUrl}}/catalog/products/{{productId}}/availability?startDate=2026-03-01&endDate=2026-03-05&quantity=1
+Content-Type: {{contentType}}
+
+
+### Create/Get Draft Quotation
+# @name createQuote
+POST {{baseUrl}}/quotations
+Content-Type: {{contentType}}
+Authorization: Bearer {{customerToken}}
+
+@quoteId = {{createQuote.response.body.quotation.id}}
+
+### Add Item to Quote
+POST {{baseUrl}}/quotations/{{quoteId}}/lines
+Content-Type: {{contentType}}
+Authorization: Bearer {{customerToken}}
+
+{
+    "productId": {{productId}},
+    "quantity": 1,
+    "rentalStart": "2026-03-01",
+    "rentalEnd": "2026-03-05"
+}
+
+### Create Address (Billing)
+# @name createBillingAddress
+POST {{baseUrl}}/users/addresses
+Content-Type: {{contentType}}
+Authorization: Bearer {{customerToken}}
+
+{
+    "label": "Head Office",
+    "addressType": "billing",
+    "line1": "404 Commerce House",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pincode": "400001",
+    "country": "India"
+}
+
+@billingId = {{createBillingAddress.response.body.address.id}}
+
+### Confirm Quote (Create Order)
+# @name confirmOrder
+POST {{baseUrl}}/quotations/{{quoteId}}/confirm
+Content-Type: {{contentType}}
+Authorization: Bearer {{customerToken}}
+
+{
+    "billingAddressId": {{billingId}}
+}
+
+@orderId = {{confirmOrder.response.body.order.id}}
+
+
+# ==========================================
+# 4. ORDER FULFILLMENT (Vendor)
+# ==========================================
+
+### Vendor: List Orders
+GET {{baseUrl}}/orders
+Authorization: Bearer {{vendorToken}}
+
+### Vendor: Activate Order (Auto-creates Pickup)
+PUT {{baseUrl}}/orders/{{orderId}}/status
+Content-Type: {{contentType}}
+Authorization: Bearer {{vendorToken}}
+
+{
+    "status": "active"
+}
+
+### Vendor: List Pickups
+GET {{baseUrl}}/pickups
+Authorization: Bearer {{vendorToken}}
+
+# ==========================================
+# 5. INVOICING & PAYMENTS
+# ==========================================
+
+### Create Invoice (Vendor)
+# @name createInvoice
+POST {{baseUrl}}/invoices
+Content-Type: {{contentType}}
+Authorization: Bearer {{vendorToken}}
+
+{
+    "rentalOrderId": {{orderId}}
+}
+
+@invoiceId = {{createInvoice.response.body.invoice.id}}
+
+
+### Make Payment (Customer)
+POST {{baseUrl}}/payments
+Content-Type: {{contentType}}
+Authorization: Bearer {{customerToken}}
+
+{
+    "invoiceId": {{invoiceId}},
+    "amount": 1000,
+    "paymentType": "partial"
+}
+
+# ==========================================
+# 6. ADMIN
+# ==========================================
+
+### Admin Login (If seeded)
+# @name adminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "admin@rental.com",
+    "password": "admin"
+}
+# Use with caution if admin user doesn't exist yet
+
+### Dashboard Stats (Vendor)
+GET {{baseUrl}}/dashboard/vendor
+Authorization: Bearer {{vendorToken}}
